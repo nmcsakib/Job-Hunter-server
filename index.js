@@ -3,7 +3,7 @@ const router = express()
 const cors = require('cors');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // Middleware
 router.use(cors())
@@ -31,12 +31,29 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
      client.connect();
+     const database = client.db("sci-fi-toy");
+    const allToys = database.collection("all-toys");
+     router.get('/allToys', async(req, res) => {
+        const result = await allToys.find().limit(20).toArray()
+        res.send(result)
+     })
+     router.get('/subCategoryToys/:text', async(req, res) => {
+        const result = await allToys.find({subCategory: req.params.text}).toArray()
+        res.send(result)
+     })
+     router.get('/toy/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = {_id : new ObjectId(id) }
+        const result = await allToys.findOne(query);
+        console.log(id);
+        res.send(result)
+     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
