@@ -53,6 +53,17 @@ async function run() {
 
      })
 
+     router.get('/my-toys', async(req, res) => {
+      const email = req.query.email;
+      let query = {}
+      if(req.query?.email){
+        query = {sellerEmail: req.query.email};
+      }
+      const result = await allToys.find(query).toArray()
+      console.log(email);
+      res.send(result)
+     })
+
      router.get('/searchToy/:text', async(req, res) => {
       const text = req.params.text;
       const result = await allToys.find(
