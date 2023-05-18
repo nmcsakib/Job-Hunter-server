@@ -31,12 +31,40 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
      client.connect();
+     const createdAt = new Date();
      const database = client.db("sci-fi-toy");
     const allToys = database.collection("all-toys");
+
+    const indexKeys = {toyName: 1,}
+    const indexOption = {name: 'toyNameSearch'}
+    const index = await allToys.createIndex(indexKeys, indexOption)
+
      router.get('/allToys', async(req, res) => {
-        const result = await allToys.find().limit(20).toArray()
+      
+        const result = await allToys.find().sort({ createdAt: -1 }).toArray()
         res.send(result)
      })
+     router.post('/allToys', async(req, res) => {
+
+      const toy = req.body;
+      toy.createdAt = createdAt;
+      const result = await allToys.insertOne(toy)
+      res.send(result)
+
+     })
+
+     router.get('/searchToy/:text', async(req, res) => {
+      const text = req.params.text;
+      const result = await allToys.find(
+      {
+        $or:[
+          {toyName:{$regex: text, $options: "i"}},
+          
+        ]
+      }
+      ).toArray()
+      res.send(result)
+    })
      router.get('/subCategoryToys/:text', async(req, res) => {
         const result = await allToys.find({subCategory: req.params.text}).toArray()
         res.send(result)
