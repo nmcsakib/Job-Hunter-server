@@ -41,7 +41,7 @@ async function run() {
 
      router.get('/allToys', async(req, res) => {
       
-        const result = await allToys.find().sort({ createdAt: -1 }).toArray()
+        const result = await allToys.find().sort({ createdAt: -1 }).limit(20).toArray()
         res.send(result)
      })
      router.post('/allToys', async(req, res) => {
@@ -52,7 +52,12 @@ async function run() {
       res.send(result)
 
      })
-
+router.delete('/allToys/:id', async(req, res) => {
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)}
+  const result = await allToys.deleteOne(query)
+  res.send(result)
+})
      router.get('/my-toys', async(req, res) => {
       const email = req.query.email;
       let query = {}
@@ -67,7 +72,7 @@ async function run() {
      router.get('/searchToy/:text', async(req, res) => {
       const text = req.params.text;
       const result = await allToys.find(
-      {
+      { 
         $or:[
           {toyName:{$regex: text, $options: "i"}},
           
@@ -75,9 +80,16 @@ async function run() {
       }
       ).toArray()
       res.send(result)
+      // if(req.params.text == ''){
+      //   const result = await allToys.find().sort({ createdAt: -1 }).limit(20).toArray()
+      //   res.send(result)
+      // } else{
+
+      //   res.send(result)
+      // }
     })
      router.get('/subCategoryToys/:text', async(req, res) => {
-        const result = await allToys.find({subCategory: req.params.text}).toArray()
+        const result = await allToys.find({subCategory: req.params.text}).sort({ createdAt: -1 }).limit(4).toArray()
         res.send(result)
      })
      router.get('/toy/:id', async(req, res) => {
