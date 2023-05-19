@@ -30,7 +30,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-     client.connect();
+    //  client.connect();
      const createdAt = new Date();
      const database = client.db("sci-fi-toy");
     const allToys = database.collection("all-toys");
@@ -38,7 +38,7 @@ async function run() {
     const indexKeys = {toyName: 1,}
     const indexOption = {name: 'toyNameSearch'}
     const index = await allToys.createIndex(indexKeys, indexOption)
-
+    let query = {}
      router.get('/allToys', async(req, res) => {
       
         const result = await allToys.find().sort({ createdAt: -1 }).limit(20).toArray()
@@ -60,7 +60,7 @@ router.delete('/allToys/:id', async(req, res) => {
 })
      router.get('/my-toys', async(req, res) => {
       const email = req.query.email;
-      let query = {}
+      
       if(req.query?.email){
         query = {sellerEmail: req.query.email};
       }
@@ -68,7 +68,15 @@ router.delete('/allToys/:id', async(req, res) => {
       console.log(email);
       res.send(result)
      })
-
+     router.get('/my-toys/:text', async(req, res) => {
+      const num = parseFloat(req.params.text)
+      console.log(num);
+      if(req.query?.email){
+        query = {sellerEmail: req.query.email};
+      }
+      const result = await allToys.find(query).sort({price: num}).toArray()
+      res.send(result)
+     })
      router.get('/searchToy/:text', async(req, res) => {
       const text = req.params.text;
       const result = await allToys.find(
@@ -80,13 +88,6 @@ router.delete('/allToys/:id', async(req, res) => {
       }
       ).toArray()
       res.send(result)
-      // if(req.params.text == ''){
-      //   const result = await allToys.find().sort({ createdAt: -1 }).limit(20).toArray()
-      //   res.send(result)
-      // } else{
-
-      //   res.send(result)
-      // }
     })
      router.get('/subCategoryToys/:text', async(req, res) => {
         const result = await allToys.find({subCategory: req.params.text}).sort({ createdAt: -1 }).limit(4).toArray()
@@ -94,10 +95,17 @@ router.delete('/allToys/:id', async(req, res) => {
      })
      router.get('/toy/:id', async(req, res) => {
         const id = req.params.id;
+
         const query = {_id : new ObjectId(id) }
         const result = await allToys.findOne(query);
+        if(req.query.some){
+          const result = await allToys.findOne(query, {projection: { _id: 0, price: 1, availableQuantity: 1, detailDescription: 1 }});
+          res.send(result)
+        }else{
+
+          res.send(result)
+        }
         console.log(id);
-        res.send(result)
      })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
