@@ -9,9 +9,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 router.use(cors())
 router.use(express.json())
 
-router.get('/', (req, res) => {
-    res.send('toys are running')
-})
+
 
 
 // MongoDB
@@ -68,6 +66,7 @@ router.delete('/allToys/:id', async(req, res) => {
       console.log(email);
       res.send(result)
      })
+
      router.get('/my-toys/:text', async(req, res) => {
       const num = parseFloat(req.params.text)
       console.log(num);
@@ -77,6 +76,7 @@ router.delete('/allToys/:id', async(req, res) => {
       const result = await allToys.find(query).sort({price: num}).toArray()
       res.send(result)
      })
+     
      router.get('/searchToy/:text', async(req, res) => {
       const text = req.params.text;
       const result = await allToys.find(
@@ -107,6 +107,25 @@ router.delete('/allToys/:id', async(req, res) => {
         }
         console.log(id);
      })
+
+     router.put('/toy/:id', async (req, res) => {
+      const id = req.params.id;
+      const toy = req.body;
+      const filter = {_id : new ObjectId(id)}
+      const options = { upsert: true };
+      const updatedToy = {
+          $set:{
+              price: toy.price,
+              availableQuantity: toy.availableQuantity,
+              detailDescription: toy.detailDescription,
+              createdAt : createdAt
+              
+          }
+      }
+      const result = await allToys.updateOne(filter, updatedToy, options)
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -117,4 +136,7 @@ router.delete('/allToys/:id', async(req, res) => {
 }
 run().catch(console.dir);
 
-router.listen(port)
+router.get('/', (req, res) => {
+  res.send('toys are running')
+})
+router.listen(port, () => console.log('running on the port', port))
