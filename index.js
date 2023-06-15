@@ -27,20 +27,28 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10
 });
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    //  client.connect();
+     client.connect(err => {
+      if(err){
+        console.log(err);
+        return
+      }
+     });
      const createdAt = new Date();
      const database = client.db("sci-fi-toy");
     const allToys = database.collection("all-toys");
 
-    const indexKeys = {toyName: 1,}
-    const indexOption = {name: 'toyNameSearch'}
-    const index = await allToys.createIndex(indexKeys, indexOption)
+    // const indexKeys = {toyName: 1,}
+    // const indexOption = {name: 'toyNameSearch'}
+    // const index = await allToys.createIndex(indexKeys, indexOption)
     let query = {}
      router.get('/allToys', async(req, res) => {
       
@@ -86,10 +94,7 @@ router.delete('/allToys/:id', async(req, res) => {
       const text = req.params.text;
       const result = await allToys.find(
       { 
-        $or:[
-          {toyName:{$regex: text, $options: "i"}},
-          
-        ]
+        toyName: text
       }
       ).toArray()
       res.send(result)
@@ -114,6 +119,9 @@ router.delete('/allToys/:id', async(req, res) => {
      })
 
      router.put('/toy/:id', async (req, res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
       const id = req.params.id;
       const toy = req.body;
       const filter = {_id : new ObjectId(id)}
